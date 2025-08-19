@@ -1,4 +1,5 @@
-import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+/* global THREE */
+const THREE = window.THREE;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -34,3 +35,4 @@ window.addEventListener('resize', () => {
 export function setLightByTurn(isPlayerTurn) {
   ambientLight.color.set(isPlayerTurn ? 0x00ff88 : 0xff4444);
 }
+
