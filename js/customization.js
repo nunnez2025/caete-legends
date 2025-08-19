@@ -124,6 +124,10 @@ export const customizationSystem = {
     `;
 
     document.body.appendChild(customizationPanel);
+    const currencyEl = document.getElementById('player-currency');
+    if (currencyEl) {
+      currencyEl.textContent = this.getPlayerCurrency().toString();
+    }
     this.bindCustomizationEvents();
     this.populateCardList();
   },
@@ -167,13 +171,13 @@ export const customizationSystem = {
         </div>
       `;
       
-      cardElement.onclick = () => this.selectCard(card);
+      cardElement.onclick = (e) => this.selectCard(card, e);
       cardList.appendChild(cardElement);
     });
   },
 
   // Select card for customization
-  selectCard(card) {
+  selectCard(card, ev) {
     this.selectedCard = card;
     this.currentCustomization = this.playerCustomizations.get(card.id) || {
       enhancements: {},
@@ -184,7 +188,9 @@ export const customizationSystem = {
     document.querySelectorAll('.customizable-card').forEach(el => {
       el.classList.remove('selected');
     });
-    event.target.closest('.customizable-card').classList.add('selected');
+    if (ev && ev.target) {
+      ev.target.closest('.customizable-card').classList.add('selected');
+    }
 
     this.populateEnhancementOptions();
     this.populateVisualOptions();
@@ -264,41 +270,6 @@ export const customizationSystem = {
 
       visualOptions.appendChild(visualElement);
     });
-  },
-
-  // Upgrade enhancement
-  upgradeEnhancement(type, cost) {
-    const playerCurrency = this.getPlayerCurrency();
-    if (playerCurrency >= cost) {
-      this.currentCustomization.enhancements[type] = 
-        (this.currentCustomization.enhancements[type] || 0) + 1;
-      
-      this.spendCurrency(cost);
-      this.populateEnhancementOptions();
-      this.updatePreview();
-      
-      ui.log(`🔧 ${this.enhancementTypes[type].name} melhorado!`);
-    } else {
-      ui.log('💰 Moedas insuficientes!');
-    }
-  },
-
-  // Purchase visual customization
-  purchaseVisual(type, cost) {
-    const playerCurrency = this.getPlayerCurrency();
-    if (playerCurrency >= cost) {
-      if (!this.currentCustomization.visuals.includes(type)) {
-        this.currentCustomization.visuals.push(type);
-      }
-      
-      this.spendCurrency(cost);
-      this.populateVisualOptions();
-      this.updatePreview();
-      
-      ui.log(`🎨 ${this.visualCustomizations[type].name} adquirido!`);
-    } else {
-      ui.log('💰 Moedas insuficientes!');
-    }
   },
 
   // Update card preview
