@@ -92,3 +92,24 @@ button:active { transform: translateY(1px); }
 
 .hidden { display: none !important; }
 
+.game-log {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 300px;
+  max-height: 200px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  overflow-y: auto;
+  z-index: 1000;
+  border: 1px solid #2a2f36;
+}
+
+.game-log div {
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
