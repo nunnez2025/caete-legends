@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('customization.css');
 
 body, html {
   margin: 0;
@@ -25,4 +26,102 @@ body, html {
 
 .game-ui {
   pointer-events: auto;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #00ff88;
+  font-size: 10px;
+  min-width: 300px;
+}
+
+#battleLog {
+  height: 100px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.5);
+  color: #0f0;
+  font-size: 8px;
+  padding: 5px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.customization-trigger-btn {
+  background: linear-gradient(45deg, #ff69b4, #ff1493);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-top: 10px;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.customization-trigger-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255, 105, 180, 0.5);
+}
+
+/* Game UI Enhancements */
+#turnIndicator {
+  font-size: 12px;
+  color: #00ff88;
+  text-align: center;
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 4px;
+  border: 1px solid #00ff88;
+}
+
+/* Stats Display */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.stat-label {
+  color: #ccc;
+}
+
+.stat-value {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+/* Animation for UI updates */
+.stat-change {
+  animation: statPulse 0.5s ease-in-out;
+}
+
+@keyframes statPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); color: #ffaa00; }
+  100% { transform: scale(1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-ui {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    font-size: 8px;
+    min-width: auto;
+  }
+  
+  .customization-trigger-btn {
+    font-size: 6px;
+    padding: 8px 12px;
+  }
 }
