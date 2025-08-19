@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0b" />
+  <title>Caeté Legends - Fixed</title>
+
+  <!-- CSS principal -->
+  <link rel="preload" href="/css/style.css" as="style">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Three.js via CDN (defer) -->
+  <script defer src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+  <!-- Código do jogo -->
+  <script defer src="/js/game.js"></script>
+  <script defer src="/js/drag.js"></script>
+</head>
+<body>
+  <main id="game-root" class="board">
+    <div class="table">
+      <!-- Área do tabuleiro -->
+      <div class="slots">
+        <div class="slot" data-slot="1"></div>
+        <div class="slot" data-slot="2"></div>
+        <div class="slot" data-slot="3"></div>
+      </div>
+
+      <!-- Mão do jogador -->
+      <div class="hand" id="hand">
+        <!-- Exemplo de cartas -->
+        <div class="card" draggable="false" data-id="c1">
+          <div class="card-front">Carta 1</div>
+        </div>
+        <div class="card" draggable="false" data-id="c2">
+          <div class="card-front">Carta 2</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
