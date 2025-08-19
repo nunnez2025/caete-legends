@@ -1,9 +1,10 @@
-import { cardDatabase, AnyCard } from './cards';
+import { cardDatabase, AnyCard, CreatureCard } from './cards';
 import { setLightByTurn } from './three-scene';
 import { ui } from './ui';
 import { customizationSystem } from './customization';
 
-const MAX_FIELD_SLOTS = 5;
+const MAX_MONSTER_SLOTS = 5;
+const MAX_ST_SLOTS = 5;
 
 type TurnSide = 'player' | 'enemy';
 
@@ -11,21 +12,27 @@ const gameState = {
   turn: 'player' as TurnSide,
   playerLifePoints: 8000,
   enemyLifePoints: 8000,
-  playerMana: 1,
-  enemyMana: 1,
+  phase: 'Draw' as 'Draw' | 'Main1' | 'Battle' | 'Main2' | 'End',
+  normalSummonUsed: false,
   playerDeck: [] as AnyCard[],
   enemyDeck: [] as AnyCard[],
   playerHand: [] as AnyCard[],
   enemyHand: [] as AnyCard[],
-  playerField: Array.from({ length: MAX_FIELD_SLOTS }, () => null as AnyCard | null),
-  enemyField: Array.from({ length: MAX_FIELD_SLOTS }, () => null as AnyCard | null),
+  playerCreatures: Array.from({ length: MAX_MONSTER_SLOTS }, () => null as AnyCard | null),
+  playerSpellsTraps: Array.from({ length: MAX_ST_SLOTS }, () => null as AnyCard | null),
+  playerFieldCard: null as AnyCard | null,
+  enemyCreatures: Array.from({ length: MAX_MONSTER_SLOTS }, () => null as AnyCard | null),
+  enemySpellsTraps: Array.from({ length: MAX_ST_SLOTS }, () => null as AnyCard | null),
+  enemyFieldCard: null as AnyCard | null,
   winner: null as TurnSide | null
 };
 
 function buildDeck(): AnyCard[] {
   const base: AnyCard[] = [];
-  cardDatabase.monsters.forEach(card => { base.push({ ...card }); base.push({ ...card }); });
-  cardDatabase.spells.forEach(card => { base.push({ ...card }); base.push({ ...card }); });
+  cardDatabase.creatures.forEach(card => { base.push({ ...card }); base.push({ ...card }); });
+  cardDatabase.spells.forEach(card => { base.push({ ...card }); });
+  cardDatabase.traps.forEach(card => { base.push({ ...card }); });
+  cardDatabase.fields.forEach(card => { base.push({ ...card }); });
   return shuffle(base);
 }
 
@@ -48,32 +55,26 @@ function drawCard(forPlayer: TurnSide) {
 
 function firstEmptySlot(arr: Array<AnyCard | null>) { return arr.findIndex(s => s === null); }
 
-function canPlay(card: AnyCard, forPlayer: TurnSide) {
-  const mana = forPlayer === 'player' ? gameState.playerMana : gameState.enemyMana;
-  const field = forPlayer === 'player' ? gameState.playerField : gameState.enemyField;
-  return mana >= (card.manaCost || 0) && firstEmptySlot(field) !== -1;
-}
-
-function spendMana(amount: number, forPlayer: TurnSide) {
-  if (forPlayer === 'player') gameState.playerMana = Math.max(0, gameState.playerMana - amount);
-  else gameState.enemyMana = Math.max(0, gameState.enemyMana - amount);
+function canNormalSummon(creature: CreatureCard, side: TurnSide): { ok: boolean; tributesNeeded: number } {
+  const level = creature.level;
+  const field = side === 'player' ? gameState.playerCreatures : gameState.enemyCreatures;
+  const empty = firstEmptySlot(field) !== -1;
+  if (!empty) return { ok: false, tributesNeeded: 0 };
+  if (level <= 4) return { ok: true, tributesNeeded: 0 };
+  if (level <= 6) return { ok: true, tributesNeeded: 1 };
+  if (level <= 8) return { ok: true, tributesNeeded: 2 };
+  return { ok: true, tributesNeeded: 3 };
 }
 
 function startTurn(forPlayer: TurnSide) {
   gameState.turn = forPlayer;
+  gameState.phase = 'Draw';
+  gameState.normalSummonUsed = false;
   setLightByTurn(forPlayer === 'player');
-  if (forPlayer === 'player') {
-    gameState.playerMana = Math.min(10, gameState.playerMana + 1);
-    drawCard('player');
-    ui.log('➕ Você comprou uma carta.');
-  } else {
-    gameState.enemyMana = Math.min(10, gameState.enemyMana + 1);
-    drawCard('enemy');
-    ui.log('🤖 Inimigo comprou uma carta.');
-    setTimeout(enemyTurn, 750);
-  }
-  ui.update(gameState as any);
-  ui.render(gameState as any);
+  if (forPlayer === 'player') { drawCard('player'); ui.log('➕ Você comprou uma carta.'); }
+  else { drawCard('enemy'); ui.log('🤖 Inimigo comprou uma carta.'); setTimeout(enemyTurn, 750); }
+  ui.update(toRender());
+  ui.render(toRender());
 }
 
 function endTurn() {
@@ -87,28 +88,45 @@ function playCardFromHand(index: number) {
   const baseCard = gameState.playerHand[index];
   if (!baseCard) return;
   const customizedCard = customizationSystem.getCustomizedCard(baseCard);
-  if (!canPlay(customizedCard, 'player')) { ui.log('⛔ Mana insuficiente ou campo cheio.'); return; }
-  const slotIndex = firstEmptySlot(gameState.playerField);
-  gameState.playerField[slotIndex] = { ...(customizedCard as AnyCard) };
-  spendMana(customizedCard.manaCost || 0, 'player');
-  gameState.playerHand.splice(index, 1);
-  ui.log(`🃏 Você invocou ${customizedCard.name}.`);
-  ui.update(gameState as any);
-  ui.render(gameState as any);
+  if (customizedCard.type === 'Creature') {
+    if (gameState.phase !== 'Main1' && gameState.phase !== 'Main2') { ui.log('⛔ Só é possível invocar em Main Phase.'); return; }
+    if (gameState.normalSummonUsed) { ui.log('⛔ Invocação Normal já usada neste turno.'); return; }
+    const { ok, tributesNeeded } = canNormalSummon(customizedCard as CreatureCard, 'player');
+    if (!ok) { ui.log('⛔ Campo cheio.'); return; }
+    if (tributesNeeded > 0) {
+      // Sacrificar automaticamente as primeiras criaturas disponíveis (simplificado)
+      const indices = gameState.playerCreatures.map((c, i) => c ? i : -1).filter(i => i !== -1).slice(0, tributesNeeded);
+      if (indices.length < tributesNeeded) { ui.log('⛔ Tributos insuficientes.'); return; }
+      indices.forEach(i => gameState.playerCreatures[i] = null);
+    }
+    const slot = firstEmptySlot(gameState.playerCreatures);
+    gameState.playerCreatures[slot] = { ...(customizedCard as AnyCard) };
+    gameState.playerHand.splice(index, 1);
+    gameState.normalSummonUsed = true;
+    ui.log(`🃏 Você invocou ${customizedCard.name}.`);
+  } else if (customizedCard.type === 'Spell' || customizedCard.type === 'Trap') {
+    const row = gameState.playerSpellsTraps;
+    const slot = firstEmptySlot(row);
+    if (slot === -1) { ui.log('⛔ Sem espaço para Magias/Armadilhas.'); return; }
+    row[slot] = { ...(customizedCard as AnyCard) };
+    gameState.playerHand.splice(index, 1);
+    ui.log(`✨ Você posicionou ${customizedCard.name}.`);
+  } else if (customizedCard.type === 'Field') {
+    gameState.playerFieldCard = { ...(customizedCard as AnyCard) };
+    gameState.playerHand.splice(index, 1);
+    ui.log(`🌳 Campo ativado: ${customizedCard.name}.`);
+  }
+  ui.update(toRender());
+  ui.render(toRender());
 }
 
 function resolveBattlePhase(attackerSide: TurnSide) {
   const isPlayer = attackerSide === 'player';
-  const attackers = isPlayer ? gameState.playerField : gameState.enemyField;
-  const defenders = isPlayer ? gameState.enemyField : gameState.playerField;
+  const attackers = isPlayer ? gameState.playerCreatures : gameState.enemyCreatures;
+  const defenders = isPlayer ? gameState.enemyCreatures : gameState.playerCreatures;
   attackers.forEach((card, i) => {
     if (!card) return;
     const defender = defenders[i];
-    if (card.type === 'Spell') {
-      if (isPlayer) { gameState.enemyLifePoints = Math.max(0, gameState.enemyLifePoints - 500); ui.log(`✨ ${card.name} causa 500 de dano direto!`); }
-      else { gameState.playerLifePoints = Math.max(0, gameState.playerLifePoints - 500); ui.log(`✨ ${card.name} do inimigo causa 500 de dano direto!`); }
-      attackers[i] = null; return;
-    }
     if (!defender) {
       if (isPlayer) { gameState.enemyLifePoints = Math.max(0, gameState.enemyLifePoints - ((card as any).attack || 0)); ui.log(`⚔️ ${card.name} ataca diretamente (${(card as any).attack}).`); }
       else { gameState.playerLifePoints = Math.max(0, gameState.playerLifePoints - ((card as any).attack || 0)); ui.log(`⚔️ ${card.name} do inimigo ataca diretamente (${(card as any).attack}).`); }
@@ -148,17 +166,37 @@ function enemyTurn() {
   let bestIndex = -1; let bestScore = -1;
   for (let i = 0; i < gameState.enemyHand.length; i++) {
     const card = gameState.enemyHand[i];
-    if (!canPlay(card, 'enemy')) continue;
-    const score = (card.type === 'Monster' ? ((card as any).attack || 0) : 300) - (card.manaCost || 0) * 10;
+    let score = 0;
+    if (card.type === 'Creature') {
+      const { ok } = canNormalSummon(card as CreatureCard, 'enemy');
+      if (!ok) continue;
+      score = ((card as any).attack || 0) + 100;
+    } else if (card.type === 'Spell' || card.type === 'Trap') {
+      score = 300;
+    } else if (card.type === 'Field') {
+      score = 200;
+    }
     if (score > bestScore) { bestScore = score; bestIndex = i; }
   }
   if (bestIndex !== -1) {
     const card = gameState.enemyHand[bestIndex];
-    const slotIndex = firstEmptySlot(gameState.enemyField);
-    gameState.enemyField[slotIndex] = { ...card };
-    spendMana(card.manaCost || 0, 'enemy');
+    if (card.type === 'Creature') {
+      const { tributesNeeded } = canNormalSummon(card as CreatureCard, 'enemy');
+      if (tributesNeeded > 0) {
+        const indices = gameState.enemyCreatures.map((c, i) => c ? i : -1).filter(i => i !== -1).slice(0, tributesNeeded);
+        indices.forEach(i => gameState.enemyCreatures[i] = null);
+      }
+      const slotIndex = firstEmptySlot(gameState.enemyCreatures);
+      gameState.enemyCreatures[slotIndex] = { ...card };
+      ui.log(`🤖 Inimigo invoca ${card.name}.`);
+    } else if (card.type === 'Spell' || card.type === 'Trap') {
+      const row = gameState.enemySpellsTraps;
+      const slot = firstEmptySlot(row);
+      if (slot !== -1) { row[slot] = { ...card }; ui.log(`🤖 Inimigo posiciona ${card.name}.`); }
+    } else if (card.type === 'Field') {
+      gameState.enemyFieldCard = { ...card }; ui.log(`🤖 Campo ativado: ${card.name}.`);
+    }
     gameState.enemyHand.splice(bestIndex, 1);
-    ui.log(`🤖 Inimigo invoca ${card.name}.`);
   }
   resolveBattlePhase('enemy');
   if (!gameState.winner) { ui.log('🔁 Inimigo termina o turno.'); startTurn('player'); }
@@ -172,26 +210,32 @@ function mountUI() {
         <span class="stat-value" id="playerLife">8000</span>
       </div>
       <div class="stats-row">
-        <span class="stat-label">Mana:</span>
-        <span class="stat-value" id="playerMana">1</span>
-      </div>
-      <div class="stats-row">
         <span class="stat-label">Inimigo:</span>
         <span class="stat-value" id="enemyLife">8000</span>
       </div>
       <div class="stats-row">
-        <span class="stat-label">Mana Inimiga:</span>
-        <span class="stat-value" id="enemyMana">1</span>
+        <span class="stat-label">Fase:</span>
+        <span class="stat-value" id="phaseLabel">Draw</span>
       </div>
       <div id="turnIndicator">SEU TURNO</div>
       <div class="board">
-        <div class="field-row" id="enemyField"></div>
-        <div class="field-row" id="playerField"></div>
+        <div class="field-row" id="enemyFieldRow">
+          <div id="enemyFieldZone" class="slot"></div>
+        </div>
+        <div class="field-row" id="enemySpellsTraps"></div>
+        <div class="field-row" id="enemyCreatures"></div>
+        <hr />
+        <div class="field-row" id="playerCreatures"></div>
+        <div class="field-row" id="playerSpellsTraps"></div>
+        <div class="field-row" id="playerFieldRow">
+          <div id="playerFieldZone" class="slot"></div>
+        </div>
         <div class="hand-row">
           <div id="playerHand" class="hand"></div>
           <div class="actions">
             <button id="attackBtn" class="end-turn-btn">Atacar & Encerrar</button>
             <button id="endTurnBtn" class="end-turn-btn alt">Encerrar Turno</button>
+            <button id="nextPhaseBtn" class="end-turn-btn alt">Próxima Fase</button>
           </div>
         </div>
       </div>
@@ -212,11 +256,28 @@ function startGame() {
   ui.log('💰 Ganhe moedas vencendo duelos!');
   setLightByTurn(true);
   ui.update(gameState as any);
-  ui.render(gameState as any);
+  ui.render(toRender());
   setTimeout(() => { customizationSystem.addCurrency(200); ui.log('💰 +200 moedas por iniciar o jogo!'); }, 1500);
 }
 
 startGame();
 
 (window as any).gameUtils = { gameState };
+
+function toRender() {
+  return {
+    playerLifePoints: gameState.playerLifePoints,
+    enemyLifePoints: gameState.enemyLifePoints,
+    turn: gameState.turn,
+    phase: gameState.phase,
+    normalSummonUsed: gameState.normalSummonUsed,
+    playerHand: gameState.playerHand,
+    playerCreatures: gameState.playerCreatures,
+    playerSpellsTraps: gameState.playerSpellsTraps,
+    playerFieldCard: gameState.playerFieldCard,
+    enemyCreatures: gameState.enemyCreatures,
+    enemySpellsTraps: gameState.enemySpellsTraps,
+    enemyFieldCard: gameState.enemyFieldCard
+  } as any;
+}
 

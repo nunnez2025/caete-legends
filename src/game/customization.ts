@@ -217,14 +217,15 @@ export const customizationSystem = {
     this.currentCustomization.visuals.forEach(visual => {
       visualClasses += ` ${(this.visualCustomizations as any)[visual].cssClass}`;
     });
+    const levelBadge = (customizedCard as any).level ? `⭐ ${(customizedCard as any).level}` : customizedCard.type;
     preview.innerHTML = `
       <div class="preview-card ${visualClasses}">
         <div class="card-header">
           <div class="card-name">${customizedCard.name}</div>
-          <div class="card-cost">💎 ${customizedCard.manaCost}</div>
+          <div class="card-cost">${levelBadge}</div>
         </div>
         <div class="card-art-large">${customizedCard.art}</div>
-        <div class="card-type">${customizedCard.type} - ${customizedCard.element}</div>
+        <div class="card-type">${customizedCard.type} ${customizedCard.attribute ? ' - ' + customizedCard.attribute : ''}</div>
         ${'attack' in customizedCard ? `
           <div class="card-stats-preview">
             <div class="stat">ATK: ${(customizedCard as any).attack}</div>

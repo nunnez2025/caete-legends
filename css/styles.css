@@ -126,6 +126,12 @@ body, html {
   gap: 10px;
 }
 
+.board hr {
+  border: none;
+  border-top: 1px dashed #444;
+  margin: 8px 0;
+}
+
 .hand {
   display: flex;
   flex-wrap: wrap;
