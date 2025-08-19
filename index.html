@@ -2,15 +2,155 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caeté Legends - Edição Brasileira Pro</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" />
+  <meta name="theme-color" content="#ff69b4" />
+  <title>Caeté Legends - Jogo de Cartas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&display=swap');
+    body, html { margin: 0; padding: 0; height: 100%; font-family: 'Press Start 2P', 'Silkscreen', cursive, sans-serif; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+    .animate-pulse-slow { animation: pulse 3s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+    .card-glow { box-shadow: 0 0 15px rgba(255,255,255,.1); transition: all .2s ease; }
+    .card-glow:hover { transform: scale(1.05); box-shadow: 0 0 24px rgba(255,255,255,.25); }
+    .mana-glow { text-shadow: 0 0 10px rgba(59,130,246,.8); }
+    .hp-glow { text-shadow: 0 0 10px rgba(239,68,68,.8); }
+    .floating-text { position: fixed; z-index: 50; pointer-events: none; font-weight: bold; font-size: 1.2rem; animation: floatUp 1.6s forwards; }
+    @keyframes floatUp { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-60px);opacity:0} }
+    #three-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+    .btn-3d { transform-style: preserve-3d; transition: transform .15s, box-shadow .15s; }
+    .btn-3d:active { transform: translateY(3px) translateZ(-4px) scale(.98); }
+    .touch-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .droppable { outline: 2px dashed rgba(125, 211, 252, .5); background: rgba(59, 130, 246, .06); }
+    .droppable-ok { outline-color: rgba(74, 222, 128, .8); background: rgba(34, 197, 94, .08); }
+    .drag-ghost { position: fixed; pointer-events: none; transform: translate(-50%, -50%); width: 110px; height: 160px; z-index: 60; opacity: .95; }
+    .attacker-ready { box-shadow: 0 0 20px rgba(250, 204, 21, .8) !important; transform: scale(1.03); }
+    .enemy-targetable { outline: 2px solid rgba(250, 204, 21, .8); background: rgba(250, 204, 21, .08); }
+    @media (max-width: 640px) { .text-6xl { font-size: 2.5rem; } .text-4xl { font-size: 1.8rem; } .text-2xl { font-size: 1.2rem; } .px-12 { padding-left: 1.5rem; padding-right: 1.5rem; } .py-6 { padding-top: 1rem; padding-bottom: 1rem; } .card-glow:hover { transform: scale(1.05); } .drag-ghost { width: 90px; height: 130px; } }
+  </style>
 </head>
-<body>
+<body class="min-h-screen bg-gradient-to-br from-emerald-900 via-amber-900 to-red-900 text-white relative overflow-hidden">
   <canvas id="three-canvas"></canvas>
-  <div id="game-container"></div>
-  <div id="root"></div>
-
-  <script type="module" src="js/game.js"></script>
+  <div id="floating-texts"></div>
+  <div class="absolute inset-0 opacity-20 pointer-events-none">
+    <div class="absolute top-10 left-8 text-6xl sm:text-8xl animate-pulse">🏹</div>
+    <div class="absolute top-32 right-4 sm:right-16 text-4xl sm:text-6xl animate-bounce">🪶</div>
+    <div class="absolute bottom-20 left-4 sm:left-16 text-6xl sm:text-7xl animate-pulse">🌳</div>
+    <div class="absolute bottom-32 right-2 sm:right-8 text-3xl sm:text-5xl animate-bounce">🐬</div>
+  </div>
+  <div class="relative z-10">
+    <div class="border-b-4 border-yellow-400 bg-black/95 backdrop-blur-lg shadow-2xl">
+      <div class="max-w-7xl mx-auto px-4 py-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 via-yellow-500 to-red-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <div>
+              <h1 class="text-3xl sm:text-4xl font-black bg-gradient-to-r from-emerald-300 via-yellow-300 to-red-300 bg-clip-text text-transparent">CAETÉ LEGENDS</h1>
+              <h2 class="text-sm sm:text-xl font-bold text-orange-300">EDIÇÃO BRASILEIRA PRO</h2>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div class="text-center bg-gradient-to-br from-green-800 to-emerald-900 p-2 rounded-lg border-2 border-green-400/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-green-400 mx-auto mb-1"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14v6M12 14l-6.16-3.08a1 1 0 0 1 0-1.84L12 6"></path></svg>
+              <div class="text-sm sm:text-lg font-bold text-green-400" id="playerWins">0</div>
+              <div class="text-xs text-green-300">Vitórias</div>
+            </div>
+            <div class="text-center bg-gradient-to-br from-red-800 to-rose-900 p-2 rounded-lg border-2 border-red-400/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-red-400 mx-auto mb-1"><path d="M12 2L9.9 5.1L5 5.5L7.3 8.4L6.5 12L10 10.2L12 14L14 10.2L17.5 12L16.7 8.4L19 5.5L14.1 5.1L12 2Z"></path></svg>
+              <div class="text-sm sm:text-lg font-bold text-red-400" id="playerLosses">0</div>
+              <div class="text-xs text-red-300">Derrotas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto p-4" id="gameContainer">
+      <div id="menuScreen" class="text-center space-y-6">
+        <div class="bg-black/80 rounded-3xl p-6 sm:p-12 border-4 border-yellow-400/50 shadow-2xl">
+          <h2 class="text-5xl sm:text-6xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-emerald-300 via-yellow-300 to-red-300 bg-clip-text text-transparent animate-pulse">LENDAS DO BRASIL</h2>
+          <p class="text-xl sm:text-2xl text-orange-300 mb-6 font-bold">🏹 Edição Brasileira Pro 🏹</p>
+        </div>
+        <button id="startDuelBtn" class="touch-btn bg-gradient-to-r from-emerald-600 via-yellow-600 to-red-600 hover:from-emerald-700 hover:via-yellow-700 hover:to-red-700 text-white font-black py-4 sm:py-6 px-8 sm:px-12 rounded-2xl shadow-2xl hover:scale-110 transition-all duration-500 btn-3d">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-4 inline-block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span class="text-xl sm:text-2xl">⚔️ INICIAR DUELO ⚔️</span>
+        </button>
+      </div>
+      <div id="duelScreen" class="space-y-4 hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-black/90 p-4 sm:p-6 rounded-2xl border-4 border-yellow-400/50 shadow-2xl">
+          <div class="text-center">
+            <div class="bg-green-800/50 p-3 sm:p-4 rounded-xl border border-green-400/50">
+              <h4 class="text-base sm:text-lg font-bold text-green-300 mb-2">🏹 VOCÊ</h4>
+              <div class="flex justify-center space-x-3">
+                <div class="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-red-500 mx-auto mb-1"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  <div class="text-lg sm:text-xl font-bold text-green-400 hp-glow" id="playerLife">8000</div>
+                  <div class="text-xs sm:text-xs text-green-300">VIDA</div>
+                </div>
+                <div class="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mx-auto mb-1"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <div class="text-lg sm:text-xl font-bold text-blue-400 mana-glow" id="playerMana">4</div>
+                  <div class="text-xs sm:text-xs text-blue-300">MANA</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="bg-yellow-800/50 p-3 sm:p-4 rounded-xl border border-yellow-400/50">
+              <div class="text-3xl sm:text-4xl font-bold text-yellow-400 mb-1">⚔️</div>
+              <div class="text-sm sm:text-lg text-yellow-300 font-bold">DUELO CAETÉ</div>
+              <div class="text-xs sm:text-sm text-gray-300">Turno <span id="turnCount">1</span></div>
+              <div class="text-xs sm:text-sm font-bold" id="turnIndicator">SEU TURNO</div>
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="bg-red-800/50 p-3 sm:p-4 rounded-xl border border-red-400/50">
+              <h4 class="text-base sm:text-lg font-bold text-red-300 mb-2">👹 INIMIGO</h4>
+              <div class="flex justify-center space-x-3">
+                <div class="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-red-500 mx-auto mb-1"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  <div class="text-lg sm:text-xl font-bold text-red-400 hp-glow" id="enemyLife">8000</div>
+                  <div class="text-xs sm:text-xs text-red-300">VIDA</div>
+                </div>
+                <div class="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mx-auto mb-1"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <div class="text-lg sm:text-xl font-bold text-blue-400 mana-glow" id="enemyMana">4</div>
+                  <div class="text-xs sm:text-xs text-blue-300">MANA</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <h4 class="text-lg sm:text-xl font-bold text-red-300 mb-2">👹 CAMPO INIMIGO</h4>
+          <div class="grid grid-cols-5 gap-1 sm:gap-3" id="enemyField"></div>
+        </div>
+        <div class="text-center">
+          <h4 class="text-lg sm:text-xl font-bold text-green-300 mb-2">🏹 SEU CAMPO</h4>
+          <div class="grid grid-cols-5 gap-1 sm:gap-3" id="playerField"></div>
+        </div>
+        <div class="bg-black/90 p-3 rounded-xl border-2 border-green-400/50">
+          <div class="flex items-center justify-between mb-2">
+            <h5 class="text-base sm:text-lg font-bold text-green-300">🃏 SUA MÃO</h5>
+            <div class="flex gap-2">
+              <button id="battlePhaseBtn" class="touch-btn bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-3 rounded-lg btn-3d text-xs">⚔️ BATALHA</button>
+              <button id="endTurnBtn" class="touch-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg btn-3d text-xs">🔄 FIM DO TURNO</button>
+            </div>
+          </div>
+          <div class="flex space-x-1 sm:space-x-2 overflow-x-auto pb-2" id="playerHand"></div>
+          <div class="text-[10px] text-gray-300 mt-1 text-left">Dica: arraste monstros para o seu campo. Arraste magias para o campo para ativar...</div>
+        </div>
+        <div class="bg-black/90 border-2 border-yellow-400/50 h-32 sm:h-48">
+          <div class="p-3 h-full">
+            <h5 class="text-xs sm:text-sm font-bold text-yellow-300 mb-1">📜 LOG DE BATALHA</h5>
+            <div class="space-y-1 h-24 sm:h-32 overflow-y-auto text-xs sm:text-sm" id="battleLog"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/js/game.js"></script>
 </body>
 </html>
