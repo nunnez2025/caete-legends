@@ -37,11 +37,11 @@ export default [
       'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'prefer-const': 'error',
       'no-var': 'error',
-      
+
       // Regras para React
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
-      
+
       // Regras para performance mobile
       'react/jsx-no-bind': ['warn', {
         allowArrowFunctions: true,
@@ -50,15 +50,12 @@ export default [
       }],
       'react/jsx-no-leaked-render': 'warn',
       'react/jsx-key': 'error',
-      
+
       // Regras para acessibilidade
       'jsx-a11y/alt-text': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
-      
-      // Regras para Three.js
-      'no-undef': 'off', // Three.js usa variáveis globais
-      
+
       // Regras para mobile-first
       'no-alert': 'warn',
       'no-confirm': 'warn',
@@ -81,6 +78,7 @@ export default [
       'dist/**',
       'build/**',
       'node_modules/**',
+      'coverage/**',
       '*.config.js',
       '*.config.ts'
     ]
