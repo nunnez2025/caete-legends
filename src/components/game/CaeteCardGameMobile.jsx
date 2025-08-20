@@ -545,6 +545,128 @@ const CaeteCardGameMobile = () => {
     );
   }
 
+  if (gameState.phase === 'victory') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-amber-900 to-red-900 text-white relative overflow-hidden">
+        {settings.show3D && (
+          <div className="absolute inset-0 z-0">
+            <Scene3D gameState={gameState} />
+          </div>
+        )}
+
+        <div className="relative z-10 text-center space-y-8 flex items-center justify-center min-h-screen p-6">
+          <div className="w-full">
+            <div className="bg-black/90 rounded-3xl p-8 border-4 border-yellow-400 shadow-2xl max-w-2xl mx-auto">
+              <div className="text-7xl animate-bounce mb-6">🏆</div>
+              <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent animate-pulse">
+                VITÓRIA ÉPICA!
+              </h2>
+              <p className="text-xl text-green-300 mb-6 font-bold">🎉 Você dominou as lendas brasileiras! 🎉</p>
+
+              <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto mb-6">
+                <div className="bg-yellow-800/50 p-4 rounded-xl border border-yellow-400/50">
+                  <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-yellow-400">VITÓRIA</div>
+                  <div className="text-yellow-300">Épica!</div>
+                </div>
+                <div className="bg-purple-800/50 p-4 rounded-xl border border-purple-400/50">
+                  <Zap className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-purple-400">{gameState.streak}</div>
+                  <div className="text-purple-300">Sequência</div>
+                </div>
+                <div className="bg-green-800/50 p-4 rounded-xl border border-green-400/50">
+                  <Star className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-green-400">{gameState.turnCount}</div>
+                  <div className="text-green-300">Turnos</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center space-x-4 mt-6">
+              <Button
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-110 transition-all duration-500"
+                onClick={startDuel}
+              >
+                <RotateCcw className="w-6 h-6 mr-3" />
+                ⚔️ NOVO DUELO
+              </Button>
+              <Button
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-110 transition-all duration-500"
+                onClick={() => setGameState(prev => ({ ...prev, phase: 'menu' }))}
+              >
+                <Crown className="w-6 h-6 mr-3" />
+                🏠 MENU PRINCIPAL
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState.phase === 'defeat') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-amber-900 to-red-900 text-white relative overflow-hidden">
+        {settings.show3D && (
+          <div className="absolute inset-0 z-0">
+            <Scene3D gameState={gameState} />
+          </div>
+        )}
+
+        <div className="relative z-10 text-center space-y-8 flex items-center justify-center min-h-screen p-6">
+          <div className="w-full">
+            <div className="bg-black/90 rounded-3xl p-8 border-4 border-red-400 shadow-2xl max-w-2xl mx-auto">
+              <div className="text-7xl animate-pulse mb-6">💀</div>
+              <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-red-400 to-gray-400 bg-clip-text text-transparent">
+                DERROTA
+              </h2>
+              <p className="text-xl text-red-300 mb-6 font-bold">⚰️ Os espíritos sombrios prevaleceram... ⚰️</p>
+
+              <div className="bg-gray-800/50 p-4 rounded-xl border border-red-400/50 max-w-xl mx-auto mb-6">
+                <h3 className="text-lg font-bold text-red-300 mb-3">📊 Estatísticas da Batalha</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-orange-400">{gameState.turnCount}</div>
+                    <div className="text-orange-300 text-sm">Turnos</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-purple-400">{gameState.spellsCast}</div>
+                    <div className="text-purple-300 text-sm">Magias</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-400">{gameState.monstersDefeated}</div>
+                    <div className="text-blue-300 text-sm">Criaturas</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center space-x-4 mt-6">
+              <Button
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-110 transition-all duration-500"
+                onClick={startDuel}
+              >
+                <Sword className="w-6 h-6 mr-3" />
+                ⚔️ VINGANÇA!
+              </Button>
+              <Button
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-110 transition-all duration-500"
+                onClick={() => setGameState(prev => ({ ...prev, phase: 'menu' }))}
+              >
+                <RotateCcw className="w-6 h-6 mr-3" />
+                🔄 MENU PRINCIPAL
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Renderização do jogo em andamento
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-amber-900 to-red-900 text-white relative overflow-hidden">
