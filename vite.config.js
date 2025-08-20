@@ -1,17 +1,36 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/',
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
+  server: {
+    host: true,
+    port: 3000
+  },
+  build: {
+    target: 'esnext',
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          three: ['three', '@react-three/fiber', '@react-three/drei'],
+          ui: ['lucide-react', 'framer-motion']
+        }
+      }
+    },
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
     }
   },
-   build: {
-    outDir: 'dist',
-    sourcemap: true
+  optimizeDeps: {
+    include: ['three', '@react-three/fiber', '@react-three/drei']
   },
-});
+  define: {
+    global: 'globalThis'
+  }
+})

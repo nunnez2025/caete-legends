@@ -1,175 +1,106 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LENDAS: Duelos Folclóricos</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#ffd700" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Caeté Legends" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Caeté Legends" />
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Jogo de cartas épico inspirado no folclore brasileiro. Invoca criaturas lendárias como Curupira, Saci Pererê e Iara em batalhas estratégicas." />
+    <meta name="keywords" content="jogo, cartas, folclore, brasileiro, curupira, saci, iara, boto, mapinguari" />
+    <meta name="author" content="Caeté Legends Team" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Caeté Legends - Jogo de Cartas Brasileiro" />
+    <meta property="og:description" content="Jogo de cartas épico inspirado no folclore brasileiro" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://caete-legends.vercel.app" />
+    <meta property="og:image" content="/screenshots/mobile-1.png" />
+    <meta property="og:image:width" content="390" />
+    <meta property="og:image:height" content="844" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Caeté Legends - Jogo de Cartas Brasileiro" />
+    <meta name="twitter:description" content="Jogo de cartas épico inspirado no folclore brasileiro" />
+    <meta name="twitter:image" content="/screenshots/mobile-1.png" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    
+    <!-- Preconnect to APIs -->
+    <link rel="preconnect" href="https://api.artic.edu" />
+    <link rel="preconnect" href="https://api.openweathermap.org" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/fonts/helvetiker_regular.typeface.json" as="fetch" crossorigin />
+    
+    <title>Caeté Legends - Jogo de Cartas Brasileiro</title>
   </head>
   <body>
-    <div id="app-root">
-      <header class="app-header">
-        <h1>LENDAS: Duelos Folclóricos</h1>
-        <nav class="main-nav">
-          <button id="btn-campanha">Campanha</button>
-          <button id="btn-duelo-rapido">Duelo Rápido</button>
-          <button id="btn-torneio">Torneio</button>
-          <button id="btn-deck-builder">Construção de Deck</button>
-          <button id="btn-config">Configurações</button>
-        </nav>
-      </header>
-
-      <main class="main-content">
-        <section id="menu-screen" class="screen visible">
-          <div class="menu-grid">
-            <div class="menu-card">
-              <h2>Jornada pelo Brasil Místico</h2>
-              <p>Avance por 20 níveis enfrentando lendas regionais.</p>
-              <button id="btn-iniciar-campanha">Iniciar Campanha</button>
-            </div>
-            <div class="menu-card">
-              <h2>Duelo Rápido</h2>
-              <p>Partida contra IA com decks pré-montados ou personalizados.</p>
-              <button id="btn-iniciar-rapido">Jogar Agora</button>
-            </div>
-            <div class="menu-card">
-              <h2>Torneio</h2>
-              <p>Competições locais com ranking. (Online opcional)</p>
-              <button id="btn-iniciar-torneio">Entrar</button>
-            </div>
-            <div class="menu-card">
-              <h2>Construção de Deck</h2>
-              <p>Monte e salve seus decks com filtros e busca.</p>
-              <button id="btn-abrir-deckbuilder">Abrir Editor</button>
-            </div>
-          </div>
-        </section>
-
-        <section id="game-screen" class="screen">
-          <div class="hud">
-            <div class="hud-left">
-              <div>Oponente LP: <span id="op-lp">8000</span></div>
-              <div>Oponente Mão: <span id="op-hand-count">5</span></div>
-              <div>Turno: <span id="turn-indicator">Jogador</span> • Fase: <span id="phase-indicator">Compra</span></div>
-            </div>
-            <div class="hud-right">
-              <div>Seu LP: <span id="my-lp">8000</span></div>
-              <div>Sua Mão: <span id="my-hand-count">5</span></div>
-              <div>
-                <button id="btn-ativar-efeito">Ativar Efeito</button>
-                <button id="btn-atacar">Atacar</button>
-                <button id="btn-finalizar">Finalizar Turno</button>
-              </div>
-            </div>
-          </div>
-
-          <div id="canvas-wrapper">
-            <canvas id="game-canvas" width="1280" height="720" aria-label="Campo de duelo"></canvas>
-            <div id="tooltip" class="tooltip" hidden></div>
-            <div id="game-log" class="game-log"></div>
-          </div>
-
-          <div id="hand-panel" class="hand-panel" aria-label="Sua mão"></div>
-
-          <dialog id="card-dialog" class="card-dialog">
-            <div class="card-dialog-content">
-              <div class="card-visual" id="dialog-card-visual"></div>
-              <div class="card-info">
-                <h3 id="dialog-card-name"></h3>
-                <div id="dialog-card-meta"></div>
-                <p id="dialog-card-text"></p>
-                <div class="dialog-actions">
-                  <button id="dialog-play-card">Jogar</button>
-                  <button id="dialog-cancel">Fechar</button>
-                </div>
-              </div>
-            </div>
-          </dialog>
-
-          <dialog id="result-dialog" class="result-dialog">
-            <div class="result-content">
-              <h2 id="result-title">Vitória!</h2>
-              <p id="result-details"></p>
-              <button id="btn-voltar-menu">Voltar ao Menu</button>
-            </div>
-          </dialog>
-        </section>
-
-        <section id="deckbuilder-screen" class="screen">
-          <div class="deckbuilder">
-            <aside class="filters">
-              <h3>Filtros</h3>
-              <input id="filter-search" placeholder="Buscar por nome/efeito" />
-              <select id="filter-type">
-                <option value="">Tipo</option>
-                <option value="creature">Criaturas</option>
-                <option value="spell">Magias</option>
-                <option value="trap">Armadilhas</option>
-                <option value="field">Terrenos</option>
-              </select>
-              <select id="filter-attribute">
-                <option value="">Atributo</option>
-                <option value="Floresta">Floresta</option>
-                <option value="Água">Água</option>
-                <option value="Fogo">Fogo</option>
-                <option value="Terra">Terra</option>
-                <option value="Vento">Vento</option>
-                <option value="Sombra">Sombra</option>
-              </select>
-            </aside>
-            <section class="catalog">
-              <h3>Cartas</h3>
-              <div id="card-catalog" class="card-grid"></div>
-            </section>
-            <section class="deck-area">
-              <h3>Seu Deck (<span id="deck-count">0</span>/60)</h3>
-              <div id="deck-grid" class="card-grid deck-grid"></div>
-              <div class="deck-actions">
-                <input id="deck-name" placeholder="Nome do deck" />
-                <button id="btn-salvar-deck">Salvar</button>
-                <button id="btn-usar-deck">Usar</button>
-                <select id="saved-decks"></select>
-                <button id="btn-excluir-deck">Excluir</button>
-                <button id="btn-voltar-menu-2">Voltar</button>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section id="campaign-screen" class="screen">
-          <div class="campaign">
-            <h2>Jornada pelo Brasil Místico</h2>
-            <div id="campaign-map" class="campaign-map"></div>
-            <div class="campaign-actions">
-              <button id="btn-voltar-menu-3">Voltar</button>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer class="app-footer">
-        <span>Folclore Brasileiro • Educação e estratégia</span>
-        <span>v1.0</span>
-      </footer>
-    </div>
-
-    <script type="module" src="./src/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <!-- PWA Install Prompt -->
+    <script>
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install button or banner
+        const installButton = document.getElementById('install-button');
+        if (installButton) {
+          installButton.style.display = 'block';
+          installButton.addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+              } else {
+                console.log('User dismissed the install prompt');
+              }
+              deferredPrompt = null;
+              installButton.style.display = 'none';
+            });
+          });
+        }
+      });
+    </script>
   </body>
-  </html>
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caeté Legends - Edição Brasileira Pro</title>
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
-<body>
-  <canvas id="three-canvas"></canvas>
-  <div id="game-container"></div>
-  <div id="root"></div>
-
-  <script type="module" src="/src/main.ts"></script>
-</body>
 </html>
