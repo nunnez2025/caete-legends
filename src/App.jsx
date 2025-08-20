@@ -1,11 +1,11 @@
 import React from 'react';
-import CaeteLegendsNetflix from './components/game/CaeteLegendsNetflix';
+import CaeteLegendsNetflixPro from './components/game/CaeteLegendsNetflixPro';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <CaeteLegendsNetflix />
+      <CaeteLegendsNetflixPro />
     </div>
   );
 }
