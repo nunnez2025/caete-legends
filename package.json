@@ -20,7 +20,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:netlify": "npm install --legacy-peer-deps && vite build",
+    "build:netlify": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix",
