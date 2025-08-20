@@ -1,11 +1,11 @@
 import React from 'react';
-import CaeteCardGameMobile from './components/game/CaeteCardGameMobile';
+import CaeteLegendsNetflix from './components/game/CaeteLegendsNetflix';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <CaeteCardGameMobile />
+      <CaeteLegendsNetflix />
     </div>
   );
 }
